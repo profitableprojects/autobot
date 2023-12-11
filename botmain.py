@@ -62,7 +62,7 @@ def fetch_rsi(symbol='BTC/USDT', timeframe='15m', limit=500, rsi_length=14, item
             df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
             df['time'] = pd.to_datetime(df['time'], unit='ms')
             df['RSI'] = ta.rsi(df['close'], length=rsi_length)
-            logger.info(f"RSI calculated for {symbol}")
+            # logger.info(f"RSI calculated for {symbol}")
             return df['RSI'].iloc[search_item]
     except Exception as e:
         logger.error(f"Error in fetch_rsi for {symbol}: {e} - {traceback.format_exc()}")
@@ -102,7 +102,7 @@ def get_ticker_info(rejected_list=None):
             logger.warning('Exchange does not have the endpoint to fetch all tickers from the API.')
             return []
         tickers = exchange.fetch_tickers()
-        logger.info("Tickers fetched successfully.")
+        # logger.info("Tickers fetched successfully.")
         return get_ticker_list(tickers=tickers,rejected_list=rejected_list)
     except Exception as e:
         logger.error(f"Error in get_ticker_info: {e} - {traceback.format_exc()}")
@@ -252,12 +252,12 @@ def buy_option_check(symbol):
             amount_to_buy = trade_parameters.get("MAXIMUM_TRADE_AMOUNT",20)
         else:
             amount_to_buy = account_balance
-        logger.info(f"Buying {amount_to_buy} {symbol} for {rsi} RSI. Account balance is {account_balance}")
+        # logger.info(f"Buying {amount_to_buy} {symbol} for {rsi} RSI. Account balance is {account_balance}")
         
         asked_price = exchange.fetch_ticker(symbol)['ask']
         amount_to_buy_for_order = amount_to_buy / asked_price
         execute_buy_order(symbol, amount_to_buy_for_order, asked_price,amount_to_buy, rsi)
-        logger.info(f"Buy order executed for {symbol}. Amount: {amount_to_buy_for_order}, Price: {asked_price}")
+        logger.info(f"Buy order executed for {symbol}. Amount: {amount_to_buy_for_order}, Price: {asked_price}, Amount USDT: {amount_to_buy} , RSI: {rsi}")
 
 def sell_check_criteria(symbol,current_price, trade):
     total_duration_check= 5 * cycle_period() * 60
@@ -267,7 +267,7 @@ def sell_check_criteria(symbol,current_price, trade):
     sell_difference_rsi = trade_parameters.get("sell_difference_rsi", 32)
     
     rsi = fetch_rsi(symbol=trade["symbol"],timeframe=timeframe)
-    logger.info(f"Checking sell criteria for {symbol}. Current price: {current_price}, Entry price: {trade['entry_price']}, Entry RSI: {trade['entry_rsi']}, RSI: {rsi}")
+    # logger.info(f"Checking sell criteria for {symbol}. Current price: {current_price}, Entry price: {trade['entry_price']}, Entry RSI: {trade['entry_rsi']}, RSI: {rsi}")
     criterias = [
         ((current_price >= (trade["entry_price"] * sell_profit2)) and (rsi > (trade["entry_rsi"] + sell_difference_rsi))),
         ((current_price >= (trade["entry_price"] * sell_profit3)) and (datetime.now() - trade["entry_time"]).total_seconds()>= total_duration_check ),
@@ -281,15 +281,15 @@ def process_symbol(symbol_info):
     volume=symbol_info["volume"]
     volume_limit = trade_parameters.get("volume_limit", 1000000)
     if volume < volume_limit:
-        logger.info(f"Volume of {symbol} is lower than {volume_limit}.")
+        # logger.info(f"Volume of {symbol} is lower than {volume_limit}.")
         return
     check_and_update_trades()
     if not is_trade_open(symbol):
-        logger.info(f"Trade is not open for {symbol}.")
+        # logger.info(f"Trade is not open for {symbol}.")
         buy_option_check(symbol)
 
     open_trades = get_trades_with_status_2(symbol)
-    logger.info(f"Open trades for {symbol}: {len(open_trades)}")
+    # logger.info(f"Open trades for {symbol}: {len(open_trades)}")
     for trade in open_trades:
         current_price = exchange.fetch_ticker(trade["symbol"])["bid"]
         if sell_check_criteria(symbol,current_price, trade):
@@ -319,6 +319,7 @@ def main():
                 start_time = time.perf_counter_ns()
                 timeframe = get_calculation_period_type_name(trade_parameters.get("calculation_period_type", 0),trade_parameters.get("calculation_period", 15))
                 logger.info(f"Config reloaded and cycle period is set to {period} seconds.")
+                count=0
            
             check_and_update_trades()
             if settings.get("use_multiprocessing",False):
