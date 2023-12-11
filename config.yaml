@@ -13,14 +13,14 @@ trade_parameters:
   calculation_period_type: 0 # 0- minute ,1- hour ,2-day ,3-week 
   minimum_trade_amount: 5.1
   maximum_trade_amount: 10.0
-  rsi_buy_limit: 35
+  rsi_buy_limit: 33
   rsi_sell_limit: 65
   rejected_list: ["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"]  # Örnek reddedilen semboller listesi
   volume_limit: 1000000 # bu birimin altındaki hacimler kontrol dışı tutulacak
   sale_profit1 : 1.07
   sale_profit2 : 1.05
   sale_profit3 : 1.04
-  sell_difference_rsi : 32
+  sell_difference_rsi : 33
   
 
 settings:

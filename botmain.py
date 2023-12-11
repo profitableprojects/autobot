@@ -243,7 +243,7 @@ def get_trades_with_status_2(symbol):
 
 def buy_option_check(symbol):
     rsi = fetch_rsi(symbol=symbol,timeframe=timeframe)
-    logger.info(f"RSI for {symbol} is {rsi}")
+    # logger.info(f"RSI for {symbol} is {rsi}")
     if rsi < trade_parameters.get("RSI_BUY_LIMIT", 35):
         account_balance = exchange.fetch_balance()['free']['USDT']
         if account_balance < trade_parameters.get("MINIMUM_TRADE_AMOUNT",5.1):
@@ -312,11 +312,11 @@ def main():
     while True:
         try:
             count+=1
-
+            start_time = time.perf_counter_ns()
             if count % 15 == 1:
                 get_config()
                 period = cycle_period() * 60 # Saniye cinsinden
-                start_time = time.perf_counter_ns()
+                
                 timeframe = get_calculation_period_type_name(trade_parameters.get("calculation_period_type", 0),trade_parameters.get("calculation_period", 15))
                 logger.info(f"Config reloaded and cycle period is set to {period} seconds.")
                 count=0
