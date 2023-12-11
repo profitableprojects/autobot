@@ -1,0 +1,5 @@
+ccxt==4.1.83
+pymongo==4.6.1
+pyyaml==6.0.1
+pandas==2.1.4
+pandas-ta==0.3.14b
