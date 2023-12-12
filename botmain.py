@@ -312,7 +312,7 @@ def main():
     while True:
         try:
             count+=1
-            start_time = time.perf_counter_ns()
+            start_time = time.perf_counter()
             if count % 15 == 1:
                 get_config()
                 period = cycle_period() * 60 # Saniye cinsinden
@@ -337,7 +337,7 @@ def main():
                     process_symbol(symbol)
             check_and_update_trades()
 
-            gecen_zaman=time.perf_counter_ns()-start_time
+            gecen_zaman=time.perf_counter()-start_time
             # if gecen_zaman < period:
             #     time.sleep(period - gecen_zaman)
             time.sleep(5)
