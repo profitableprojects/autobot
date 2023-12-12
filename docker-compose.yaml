@@ -22,6 +22,8 @@ services:
   autoschedule:
     image: nvrbox/autoschedule:1.0.3
     container_name: AUTOSCHEDULE
+    environment:
+      - EMAIL_PASSWORD=""
     depends_on:
       - mongo
     restart: on-failure

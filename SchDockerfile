@@ -6,7 +6,7 @@ WORKDIR /bot
 COPY schreqs.txt requirements.txt 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY schedule.py main.py
+COPY mailschedule.py main.py
 
 
 # Run the application

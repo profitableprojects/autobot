@@ -338,9 +338,10 @@ def main():
             check_and_update_trades()
 
             gecen_zaman=time.perf_counter_ns()-start_time
-            if gecen_zaman < period:
-                time.sleep(period - gecen_zaman)
-            logger.info("-----------------------Cycle Ends-----------------------------")
+            # if gecen_zaman < period:
+            #     time.sleep(period - gecen_zaman)
+            time.sleep(5)
+            logger.info(f"-----------------------Cycle Ends-----------------------------gecen_zaman: {gecen_zaman} - period: {period}")
         except Exception as e:
             logger.error(f"Unexpected error in main loop: {e} - {traceback.format_exc()}")
             time.sleep(10)  # Wait for a while before next iteration

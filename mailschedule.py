@@ -5,6 +5,7 @@ import pymongo
 import schedule
 import time
 import datetime
+import os
 
 # Veritabanı bağlantısı
 client = pymongo.MongoClient("mongodb://mongo:27017")
@@ -14,7 +15,7 @@ collection = db["signals"]
 # E-posta bilgileri
 sender_email = "autobot@nvrbox.com"
 receiver_email = "cervantes79@gmail.com"
-password = "[5aM?b+e1sdR"
+password = os.environ.get("EMAIL_PASSWORD", "password")
 
 def send_email(subject, body):
     message = MIMEMultipart()
