@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY botmain.py main.py
-COPY config.yaml .
+COPY test/config.yaml config.yaml
 
 
 
