@@ -16,7 +16,7 @@ collection = db["signals"]
 sender_email = "autobot@nvrbox.com"
 receiver_email = "cervantes79@gmail.com"
 password = os.environ.get("EMAIL_PASSWORD", "password")
-
+print(f"Password: {password}")
 def send_email(subject, body):
     message = MIMEMultipart()
     message["From"] = sender_email
@@ -26,10 +26,12 @@ def send_email(subject, body):
     message.attach(MIMEText(body, "plain"))
 
     with smtplib.SMTP_SSL("mail.nvrbox.com", 465) as server:
+
         server.login(sender_email, password)
         server.sendmail(sender_email, receiver_email, message.as_string())
 
 def fetch_and_send_trades():
+    print(f"Fetching and sending trades... time: {datetime.datetime.now()}")
     now = datetime.datetime.now()
     one_hour_ago = now - datetime.timedelta(hours=1)
 
@@ -40,10 +42,14 @@ def fetch_and_send_trades():
     body += "\n\nClosed Trades:\n"
     body += "\n".join([str(trade) for trade in closed_trades])
 
-    send_email("Hourly Trade Update", body)
+    try:
+        send_email("Hourly Trade Update", body)
+    except Exception as e:
+        print(f"Error sending email: {e}")
 
 # Schedule to run every hour
-schedule.every().hour.do(fetch_and_send_trades)
+
+schedule.every().hour.at(":00").do(fetch_and_send_trades)
 
 while True:
     schedule.run_pending()
