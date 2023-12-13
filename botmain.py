@@ -216,25 +216,29 @@ def is_trade_open(symbol):
     return collection.find_one({"symbol": symbol, "status": {"$lt": 4}}) is not None
 
 def execute_buy_order(symbol, amount, price, amount_usdt, rsi):
-    order = exchange.create_limit_buy_order(symbol, amount, price)
-    collection.insert_one({
-        "symbol": symbol,
-        "buy_id": order["id"],
-        "sell_id": "",
-        "status": 1, # 1 means buy open , 2 bought ,3 sell open ,4 sold
-        "entry_price": price,
-        "entry_amount": amount,
-        "entry_amount_usdt": amount_usdt,
-        "entry_rsi": rsi,
-        "entry_time": datetime.now(),
-        "exit_time": None,
-        "exit_price": None,
-        "exit_amount": None,
-        "exit_amount_usdt": None,
-        "exit_rsi": None,
-        "profit": None,
-        "profit_percentage": None
-    })
+    try:
+        order = exchange.create_limit_buy_order(symbol, amount, price)
+        collection.insert_one({
+            "symbol": symbol,
+            "buy_id": order["id"],
+            "sell_id": "",
+            "status": 1, # 1 means buy open , 2 bought ,3 sell open ,4 sold
+            "entry_price": price,
+            "entry_amount": amount,
+            "entry_amount_usdt": amount_usdt,
+            "entry_rsi": rsi,
+            "entry_time": datetime.now(),
+            "exit_time": None,
+            "exit_price": None,
+            "exit_amount": None,
+            "exit_amount_usdt": None,
+            "exit_rsi": None,
+            "profit": None,
+            "profit_percentage": None
+        })
+    except Exception as e:
+        logger.error(f"symbol: {symbol}, amount:{amount}, price:{price}, rsi:{rsi}, amount_usdt:{amount_usdt} ,Error in execute_buy_order: {e} - {traceback.format_exc()}")
+
 
 
 def execute_sell_order(symbol, amount, price):
