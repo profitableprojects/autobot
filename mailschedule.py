@@ -7,6 +7,18 @@ import schedule
 import time
 import datetime
 import os
+import logging
+
+# Log dosyasının bulunduğu klasörü kontrol et ve gerekirse oluştur
+log_directory = "/bot/logs"
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
+
+# Loglama yapılandırması
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    handlers=[logging.FileHandler(f"{log_directory}/mail_schedule.log"),
+                              logging.StreamHandler()])
 
 # Veritabanı bağlantısı
 client = pymongo.MongoClient("mongodb://mongo:27017")
@@ -20,7 +32,6 @@ password = os.environ.get("EMAIL_PASSWORD", "password")
 smtp_host= os.environ.get("EMAIL_SMTP", "smtp.test.com")
 smtp_port = os.environ.get("EMAIL_PORT", 465)
 
-print(f"Password: {password}")
 def format_trade_data(trades, fields):
     table = PrettyTable()
     table.field_names = fields
@@ -37,12 +48,16 @@ def send_email(subject, body):
 
     message.attach(MIMEText(body, "plain"))
 
-    with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
-        server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
+    try:
+        with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+        logging.info("Email sent successfully.")
+    except Exception as e:
+        logging.error(f"Error sending email: {e}")
 
 def fetch_and_send_trades():
-    print(f"Fetching and sending trades... time: {datetime.datetime.now()}")
+    logging.info(f"Fetching and sending trades... datetime: {datetime.datetime.now()}")
     now = datetime.datetime.now()
     one_hour_ago = now - datetime.timedelta(hours=1)
     twenty_four_hours_ago = now - datetime.timedelta(hours=24)
@@ -82,7 +97,7 @@ def fetch_and_send_trades():
     ]
 
 
-    # Rapor formatlama
+    # Rapor formatlama ve e-posta gönderimi
     body = "New Purchases:\n" + format_trade_data(new_purchases, purchase_fields)
     body += "\n\nRecent Sales:\n" + format_trade_data(recent_sales, sale_fields)
     body += "\n\nLast Day Sales:\n" + format_trade_data(last_day_sales, sale_fields)
@@ -91,12 +106,16 @@ def fetch_and_send_trades():
     try:
         send_email("Hourly Trade Update", body)
     except Exception as e:
-        print(f"Error sending email: {e}")
+        logging.error(f"Error sending email: {e}")
 
 # Zamanlama
 schedule.every().hour.at(":10").do(fetch_and_send_trades)
 
+# İlk çalıştırmayı başlat
+logging.info("Starting first run...")
 fetch_and_send_trades()
+
+# Döngüyü başlat
 while True:
     schedule.run_pending()
     time.sleep(1)
