@@ -71,7 +71,7 @@ def fetch_rsi(symbol='BTC/USDT', timeframe='15m', limit=500, rsi_length=14, item
 
 def get_ticker_list(tickers, rejected_list=None):
     if rejected_list is None:
-        rejected_list = []
+        rejected_list = ["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"]
     thick_list=[]
     for symbol, ticker in tickers.items():
         if ticker['bid'] is None or ticker['ask'] is None:
@@ -237,7 +237,7 @@ def execute_buy_order(symbol, amount, price, amount_usdt, rsi):
     })
 
 
-def execute_sell_order(symbol, amount, price,rsi):
+def execute_sell_order(symbol, amount, price):
     rsi=fetch_rsi(symbol=symbol,timeframe=timeframe)
     order = exchange.create_limit_sell_order(symbol, amount, price)
     collection.update_one(
@@ -259,12 +259,18 @@ def buy_option_check(symbol):
         account_balance = exchange.fetch_balance()['free']['USDT']
         if account_balance < trade_parameters.get("MINIMUM_TRADE_AMOUNT",5.1):
             return
-        if account_balance > trade_parameters.get("MAXIMUM_TRADE_AMOUNT",20):
-            amount_to_buy = trade_parameters.get("MAXIMUM_TRADE_AMOUNT",20)
+        if account_balance > trade_parameters.get("MAXIMUM_TRADE_AMOUNT",10):
+            amount_to_buy = trade_parameters.get("MAXIMUM_TRADE_AMOUNT",10)
         else:
             amount_to_buy = account_balance
         # logger.info(f"Buying {amount_to_buy} {symbol} for {rsi} RSI. Account balance is {account_balance}")
-        
+        rejected_list=["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"] 
+
+        for i in rejected_list:
+            if i in symbol:
+                logger.info(f"{symbol} is in rejected list.")
+                return
+
         asked_price = exchange.fetch_ticker(symbol)['ask']
         amount_to_buy_for_order = amount_to_buy / asked_price
         execute_buy_order(symbol, amount_to_buy_for_order, asked_price,amount_to_buy, rsi)
