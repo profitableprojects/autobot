@@ -305,8 +305,8 @@ def process_symbol(symbol_info):
         current_price = exchange.fetch_ticker(trade["symbol"])["bid"]
         if sell_check_criteria(symbol,current_price, trade):
             
-            execute_sell_order(trade["symbol"], trade["amount"], current_price)
-            logger.info(f"Sold {trade['amount']} {symbol} for {current_price}.")
+            execute_sell_order(trade["symbol"], trade["entry_amount"], current_price)
+            logger.info(f"Sold {trade['entry_amount']} {symbol} for {current_price}.")
 
 def main():
     global exchange
