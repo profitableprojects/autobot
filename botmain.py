@@ -226,15 +226,26 @@ def execute_buy_order(symbol, amount, price, amount_usdt, rsi):
         "entry_amount": amount,
         "entry_amount_usdt": amount_usdt,
         "entry_rsi": rsi,
-        "entry_time": datetime.now()
+        "entry_time": datetime.now(),
+        "exit_time": None,
+        "exit_price": None,
+        "exit_amount": None,
+        "exit_amount_usdt": None,
+        "exit_rsi": None,
+        "profit": None,
+        "profit_percentage": None
     })
 
 
-def execute_sell_order(symbol, amount, price):
+def execute_sell_order(symbol, amount, price,rsi):
+    rsi=fetch_rsi(symbol=symbol,timeframe=timeframe)
     order = exchange.create_limit_sell_order(symbol, amount, price)
     collection.update_one(
         {"symbol": symbol, "status": 2},
-        {"$set": {"status": 3, "exit_time": datetime.now(), "sell_id": order["id"]}}
+        {"$set": {"status": 3, "exit_time": datetime.now(), "sell_id": order["id"], 
+                  "exit_price": price, "exit_amount": amount,"exit_amount_usdt":price*amount, "exit_rsi": rsi,
+                  "profit":price*amount-collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"],
+                  "profit_percentage":(1-(price*amount/collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"]))*100}}
     )
 
 def get_trades_with_status_2(symbol):
@@ -293,6 +304,7 @@ def process_symbol(symbol_info):
     for trade in open_trades:
         current_price = exchange.fetch_ticker(trade["symbol"])["bid"]
         if sell_check_criteria(symbol,current_price, trade):
+            
             execute_sell_order(trade["symbol"], trade["amount"], current_price)
             logger.info(f"Sold {trade['amount']} {symbol} for {current_price}.")
 
