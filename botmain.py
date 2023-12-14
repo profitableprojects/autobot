@@ -70,6 +70,7 @@ def fetch_rsi(symbol='BTC/USDT', timeframe='15m', limit=500, rsi_length=14, item
 
 
 def get_ticker_list(tickers):
+    global trade_parameters
     rejected_list=trade_parameters["rejected_list"]
     thick_list=[]
     for symbol, ticker in tickers.items():
@@ -93,11 +94,9 @@ def get_ticker_list(tickers):
         thick_list.append(stg)
     return thick_list
 
-def get_ticker_info(rejected_list=None):
+def get_ticker_info():
     global exchange
 
-    if rejected_list is None:
-        rejected_list = []
     try:
         logger.info(f"Fetching tickers... {exchange.name}")
         if 'fetchTickers' not in exchange.has:
@@ -105,7 +104,7 @@ def get_ticker_info(rejected_list=None):
             return []
         tickers = exchange.fetch_tickers()
         # logger.info("Tickers fetched successfully.")
-        return get_ticker_list(tickers=tickers,rejected_list=rejected_list)
+        return get_ticker_list(tickers=tickers)
     except Exception as e:
         logger.error(f"Error in get_ticker_info: {e} - {traceback.format_exc()}")
         return []
@@ -245,14 +244,18 @@ def execute_buy_order(symbol, amount, price, amount_usdt, rsi):
 
 def execute_sell_order(symbol, amount, price):
     rsi=fetch_rsi(symbol=symbol,timeframe=timeframe)
-    order = exchange.create_limit_sell_order(symbol, amount, price)
-    collection.update_one(
-        {"symbol": symbol, "status": 2},
-        {"$set": {"status": 3, "exit_time": datetime.now(), "sell_id": order["id"], 
-                  "exit_price": price, "exit_amount": amount,"exit_amount_usdt":price*amount, "exit_rsi": rsi,
-                  "profit":price*amount-collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"],
-                  "profit_percentage":(1-(price*amount/collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"]))*100}}
-    )
+    # logger.debug(f"sending sell order for {symbol} - amount: {amount} - price: {price} - rsi: {rsi}")
+    try:
+        order = exchange.create_limit_sell_order(symbol, amount, price)
+        collection.update_one(
+            {"symbol": symbol, "status": 2},
+            {"$set": {"status": 3, "exit_time": datetime.now(), "sell_id": order["id"], 
+                    "exit_price": price, "exit_amount": amount,"exit_amount_usdt":price*amount, "exit_rsi": rsi,
+                    "profit":price*amount-collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"],
+                    "profit_percentage":(1-(price*amount/collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"]))*100}}
+        )
+    except Exception as e:
+        logger.error(f"symbol: {symbol}, amount:{amount}, price:{price}, rsi:{rsi}, Error in execute_sell_order: {e} - {traceback.format_exc()}")
 
 def get_trades_with_status_2(symbol):
     trades = collection.find({"symbol": symbol, "status": 2})
@@ -293,8 +296,8 @@ def sell_check_criteria(symbol,current_price, trade):
     # logger.info(f"Checking sell criteria for {symbol}. Current price: {current_price}, Entry price: {trade['entry_price']}, Entry RSI: {trade['entry_rsi']}, RSI: {rsi}")
     criterias = [
         ((current_price >= (trade["entry_price"] * sell_profit2)) and (rsi > (trade["entry_rsi"] + sell_difference_rsi))),
-        ((current_price >= (trade["entry_price"] * sell_profit3)) and (datetime.now() - trade["entry_time"]).total_seconds()>= total_duration_check ),
-        ((current_price >= (trade["entry_price"] * sell_profit1)))
+        ((current_price >= (trade["entry_price"] * sell_profit3)) and (datetime.now() - trade["entry_time"]).total_seconds()>= total_duration_check*3 ),
+        ((current_price >= (trade["entry_price"] * sell_profit1))  and (datetime.now() - trade["entry_time"]).total_seconds()>= total_duration_check*10 ) 
 
     ]
     return any(criterias)
@@ -349,7 +352,7 @@ def main():
            
             check_and_update_trades()
             if settings.get("use_multiprocessing",False):
-                symbols = get_ticker_info(trade_parameters["rejected_list"])
+                symbols = get_ticker_info()
                 pool_size = cpu_count() * 4  # Her CPU için 4 ekstra süreç
 
                 with Pool(pool_size) as pool:
@@ -357,7 +360,7 @@ def main():
                     logger.info("Processing symbols with multiprocessing.")
 
             else:
-                symbols = get_ticker_info(trade_parameters["rejected_list"])
+                symbols = get_ticker_info()
                 logger.info("Processing symbols without multiprocessing.")
                 for symbol in symbols:
                     process_symbol(symbol)
