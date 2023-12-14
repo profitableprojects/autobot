@@ -32,21 +32,22 @@ password = os.environ.get("EMAIL_PASSWORD", "password")
 smtp_host= os.environ.get("EMAIL_SMTP", "smtp.test.com")
 smtp_port = os.environ.get("EMAIL_PORT", 465)
 
-def format_trade_data(trades, fields):
+def format_trade_data_to_html(trades, fields):
     table = PrettyTable()
     table.field_names = fields
     for trade in trades:
         row = [trade.get(field, "") for field in fields]
         table.add_row(row)
-    return table.get_string()
+    return table.get_html_string()
 
-def send_email(subject, body):
-    message = MIMEMultipart()
+def send_email(subject, html_content):
+    message = MIMEMultipart("alternative")
     message["From"] = sender_email
     message["To"] = receiver_email
     message["Subject"] = subject
 
-    message.attach(MIMEText(body, "plain"))
+    # HTML içeriğini ekle
+    message.attach(MIMEText(html_content, "html"))
 
     try:
         with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
@@ -98,18 +99,21 @@ def fetch_and_send_trades():
 
 
     # Rapor formatlama ve e-posta gönderimi
-    body = "New Purchases:\n" + format_trade_data(new_purchases, purchase_fields)
-    body += "\n\nRecent Sales:\n" + format_trade_data(recent_sales, sale_fields)
-    body += "\n\nLast Day Sales:\n" + format_trade_data(last_day_sales, sale_fields)
-    body += "\n\nOpen Trades:\n" + format_trade_data(open_trades, open_trade_fields)
+    html_body = "<h1>Hourly Trade Update</h1>"
+    html_body += "<h2>New Purchases:</h2>" + format_trade_data_to_html(new_purchases, purchase_fields)
+    html_body += "<h2>Recent Sales:</h2>" + format_trade_data_to_html(recent_sales, sale_fields)
+    html_body += "<h2>Last Day Sales:</h2>" + format_trade_data_to_html(last_day_sales, sale_fields)
+    html_body += "<h2>Open Trades:</h2>" + format_trade_data_to_html(open_trades, open_trade_fields)
+
+    
 
     try:
-        send_email("Hourly Trade Update", body)
+        send_email("Hourly Trade Update", html_body)
     except Exception as e:
         logging.error(f"Error sending email: {e}")
 
 # Zamanlama
-schedule.every().hour.at(":10").do(fetch_and_send_trades)
+schedule.every().hour.at(":01").do(fetch_and_send_trades)
 
 # İlk çalıştırmayı başlat
 logging.info("Starting first run...")

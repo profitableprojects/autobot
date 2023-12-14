@@ -69,9 +69,8 @@ def fetch_rsi(symbol='BTC/USDT', timeframe='15m', limit=500, rsi_length=14, item
         return None
 
 
-def get_ticker_list(tickers, rejected_list=None):
-    if rejected_list is None:
-        rejected_list = ["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"]
+def get_ticker_list(tickers):
+    rejected_list=trade_parameters["rejected_list"]
     thick_list=[]
     for symbol, ticker in tickers.items():
         if ticker['bid'] is None or ticker['ask'] is None:
@@ -82,6 +81,9 @@ def get_ticker_list(tickers, rejected_list=None):
         for i in rejected_list:
             if i in symbol:
                 continue
+        if "UP/" in symbol or "DOWN/" in symbol:
+            continue
+
         stg = {
             'symbol': symbol,
             'bid': float(ticker['bid']),
@@ -113,7 +115,7 @@ def check_and_update_trades():
     fifteen_minutes_ago = now - timedelta(minutes=cycle_period())
 
     # Veritabanındaki son 15 dakika içinde oluşturulmuş emirleri al
-    trades = collection.find({"entry_time": {"$gte": fifteen_minutes_ago}})
+    trades = collection.find({"status":  {"$lt": 4}})
 
     for trade in trades:
         if trade['status'] in [1, 3]:  # 1: buy open, 3: sell open
@@ -307,7 +309,9 @@ def process_symbol(symbol_info):
     check_and_update_trades()
     if not is_trade_open(symbol):
         # logger.info(f"Trade is not open for {symbol}.")
-        buy_option_check(symbol)
+        if trade_parameters.get("use_buy_option", False):
+            buy_option_check(symbol)
+
 
     open_trades = get_trades_with_status_2(symbol)
     # logger.info(f"Open trades for {symbol}: {len(open_trades)}")

@@ -9,6 +9,7 @@ ccxt:
   secret: ""
 
 trade_parameters:
+  stop_buy: False
   calculation_period: 15
   calculation_period_type: 0 # 0- minute ,1- hour ,2-day ,3-week 
   minimum_trade_amount: 5.1
