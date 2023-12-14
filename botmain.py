@@ -252,7 +252,7 @@ def execute_sell_order(symbol, amount, price):
             {"$set": {"status": 3, "exit_time": datetime.now(), "sell_id": order["id"], 
                     "exit_price": price, "exit_amount": amount,"exit_amount_usdt":price*amount, "exit_rsi": rsi,
                     "profit":price*amount-collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"],
-                    "profit_percentage":(1-(price*amount/collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"]))*100}}
+                    "profit_percentage":(1-((price*amount)/(collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"])))*100}}
         )
     except Exception as e:
         logger.error(f"symbol: {symbol}, amount:{amount}, price:{price}, rsi:{rsi}, Error in execute_sell_order: {e} - {traceback.format_exc()}")
