@@ -312,7 +312,8 @@ def process_symbol(symbol_info):
     check_and_update_trades()
     if not is_trade_open(symbol):
         # logger.info(f"Trade is not open for {symbol}.")
-        if trade_parameters.get("use_buy_option", False):
+        # buy_enabled: True
+        if trade_parameters.get("buy_enabled", True):
             buy_option_check(symbol)
 
 
