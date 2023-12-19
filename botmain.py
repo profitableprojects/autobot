@@ -287,17 +287,17 @@ def buy_option_check(symbol):
 
 def sell_check_criteria(symbol,current_price, trade):
     total_duration_check= 5 * cycle_period() * 60
-    sell_profit1 = trade_parameters.get("sale_profit1", 7)
-    sell_profit2 = trade_parameters.get("sell_profit2", 5)
-    sell_profit3 = trade_parameters.get("sell_profit3", 4)
+    sell_profit1 = trade_parameters.get("sale_profit1", 1.07)
+    sell_profit2 = trade_parameters.get("sell_profit2", 1.05)
+    sell_profit3 = trade_parameters.get("sell_profit3", 1.04)
     sell_difference_rsi = trade_parameters.get("sell_difference_rsi", 32)
     
     rsi = fetch_rsi(symbol=trade["symbol"],timeframe=timeframe)
     # logger.info(f"Checking sell criteria for {symbol}. Current price: {current_price}, Entry price: {trade['entry_price']}, Entry RSI: {trade['entry_rsi']}, RSI: {rsi}")
     criterias = [
-        ((current_price >= (trade["entry_price"] * sell_profit2)) and (rsi > (trade["entry_rsi"] + sell_difference_rsi))),
-        ((current_price >= (trade["entry_price"] * sell_profit3)) and (datetime.now() - trade["entry_time"]).total_seconds()>= total_duration_check*3 ),
-        ((current_price >= (trade["entry_price"] * sell_profit1))  and (datetime.now() - trade["entry_time"]).total_seconds()>= total_duration_check*10 ) 
+        ((current_price >= (trade["entry_price"] * sell_profit3)) and (rsi > (trade["entry_rsi"] + sell_difference_rsi))),
+        ((current_price >= (trade["entry_price"] * sell_profit2)) and (datetime.now() - trade["entry_time"]).total_seconds()>= total_duration_check ),
+        ((current_price >= (trade["entry_price"] * sell_profit1)) and rsi > 65) 
 
     ]
     return any(criterias)
