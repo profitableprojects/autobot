@@ -22,6 +22,7 @@ trade_parameters:
   sale_profit2 : 1.05
   sale_profit3 : 1.04
   sell_difference_rsi : 33
+  sell_profit_1_rsi_level: 62
   
 
 settings:
