@@ -12,9 +12,9 @@ trade_parameters:
   buy_enabled: True
   calculation_period: 15
   calculation_period_type: 0 # 0- minute ,1- hour ,2-day ,3-week 
-  minimum_trade_amount: 5.1
-  maximum_trade_amount: 10.0
-  rsi_buy_limit: 33
+  MINIMUM_TRADE_AMOUNT: 15
+  MAXIMUM_TRADE_AMOUNT: 50
+  RSI_BUY_LIMIT: 31
   rsi_sell_limit: 65
   rejected_list: ["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"]  # Örnek reddedilen semboller listesi
   volume_limit: 1000000 # bu birimin altındaki hacimler kontrol dışı tutulacak

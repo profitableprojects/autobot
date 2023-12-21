@@ -248,7 +248,7 @@ def execute_sell_order(symbol, amount, price):
     try:
         order = exchange.create_limit_sell_order(symbol, amount, price)
         collection.update_one(
-            {"symbol": symbol, "status": 2},
+            {"symbol": symbol, "status": {"$lt": 3}},
             {"$set": {"status": 3, "exit_time": datetime.now(), "sell_id": order["id"], 
                     "exit_price": price, "exit_amount": amount,"exit_amount_usdt":price*amount, "exit_rsi": rsi,
                     "profit":price*amount-collection.find_one({"symbol": symbol, "status": 2})["entry_amount_usdt"],
@@ -258,7 +258,7 @@ def execute_sell_order(symbol, amount, price):
         logger.error(f"symbol: {symbol}, amount:{amount}, price:{price}, rsi:{rsi}, Error in execute_sell_order: {e} - {traceback.format_exc()}")
 
 def get_trades_with_status_2(symbol):
-    trades = collection.find({"symbol": symbol, "status": 2})
+    trades = collection.find({"symbol": symbol, "status": {"$lt": 3}})
     return list(trades)
 
 def buy_option_check(symbol):
@@ -294,7 +294,7 @@ def sell_check_criteria(symbol,current_price, trade):
     sell_profit_1_rsi_level= float(trade_parameters.get("sell_profit_1_rsi_level", 61.4))
     
     rsi = fetch_rsi(symbol=trade["symbol"],timeframe=timeframe)
-    # logger.info(f"Checking sell criteria for {symbol}. Current price: {current_price}, Entry price: {trade['entry_price']}, Entry RSI: {trade['entry_rsi']}, RSI: {rsi}")
+    logger.info(f"Checking sell criteria for {symbol}. Current price: {current_price}, Entry price: {trade['entry_price']}, Entry RSI: {trade['entry_rsi']}, RSI: {rsi}")
     criterias = [
         ((current_price >= (trade["entry_price"] * sell_profit3)) and (rsi > (trade["entry_rsi"] + sell_difference_rsi))),
         ((current_price >= (trade["entry_price"] * sell_profit2)) and (datetime.now() - trade["entry_time"]).total_seconds()>= total_duration_check ),
@@ -307,11 +307,9 @@ def process_symbol(symbol_info):
     symbol=symbol_info["symbol"]
     volume=symbol_info["volume"]
     volume_limit = trade_parameters.get("volume_limit", 1000000)
-    if volume < volume_limit:
-        # logger.info(f"Volume of {symbol} is lower than {volume_limit}.")
-        return
+
     check_and_update_trades()
-    if not is_trade_open(symbol):
+    if not is_trade_open(symbol) and volume >= volume_limit:
         # logger.info(f"Trade is not open for {symbol}.")
         # buy_enabled: True
         if trade_parameters.get("buy_enabled", True):
@@ -339,19 +337,16 @@ def main():
     get_config()
     initialize_database()
     initialize_exchange()
-    count=0
     while True:
         try:
-            count+=1
             start_time = time.perf_counter()
-            if count % 15 == 1:
-                get_config()
-                period = cycle_period() * 60 # Saniye cinsinden
-                
-                timeframe = get_calculation_period_type_name(trade_parameters.get("calculation_period_type", 0),trade_parameters.get("calculation_period", 15))
-                logger.info(f"Config reloaded and cycle period is set to {period} seconds.")
-                count=0
-           
+            # if count % 15 == 1:
+            get_config()
+            period = cycle_period() * 60 # Saniye cinsinden
+            
+            timeframe = get_calculation_period_type_name(trade_parameters.get("calculation_period_type", 0),trade_parameters.get("calculation_period", 15))
+            logger.info(f"Config reloaded and cycle period is set to {period} seconds.- {trade_parameters}")
+
             check_and_update_trades()
             if settings.get("use_multiprocessing",False):
                 symbols = get_ticker_info()
