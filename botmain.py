@@ -308,7 +308,7 @@ def process_symbol(symbol_info):
     volume=symbol_info["volume"]
     volume_limit = trade_parameters.get("volume_limit", 1000000)
 
-    check_and_update_trades()
+    # check_and_update_trades()
     if not is_trade_open(symbol) and volume >= volume_limit:
         # logger.info(f"Trade is not open for {symbol}.")
         # buy_enabled: True
