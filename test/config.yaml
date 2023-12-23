@@ -10,6 +10,7 @@ ccxt:
 
 trade_parameters:
   buy_enabled: True
+  one_day_rsi_limit_buy: 65
   calculation_period: 15
   calculation_period_type: 0 # 0- minute ,1- hour ,2-day ,3-week 
   MINIMUM_TRADE_AMOUNT: 15

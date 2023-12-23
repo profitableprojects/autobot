@@ -263,6 +263,11 @@ def get_trades_with_status_2(symbol):
 
 def buy_option_check(symbol):
     rsi = fetch_rsi(symbol=symbol,timeframe=timeframe)
+    one_day_rsi_limit_buy = float(trade_parameters.get("one_day_rsi_limit_buy", 64.4))
+    rsi_1_day = fetch_rsi(symbol=symbol,timeframe="1d")
+    if rsi_1_day >= one_day_rsi_limit_buy:
+        logger.info(f"RSI for {symbol} is {rsi_1_day} and it is higher than {one_day_rsi_limit_buy}.")
+        return
     # logger.info(f"RSI for {symbol} is {rsi}")
     if rsi < trade_parameters.get("RSI_BUY_LIMIT", 35):
         account_balance = exchange.fetch_balance()['free']['USDT']
