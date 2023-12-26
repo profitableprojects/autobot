@@ -19,9 +19,9 @@ trade_parameters:
   rsi_sell_limit: 65
   rejected_list: ["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"]  # Örnek reddedilen semboller listesi
   volume_limit: 1000000 # bu birimin altındaki hacimler kontrol dışı tutulacak
-  sale_profit1 : 1.07
-  sale_profit2 : 1.05
-  sale_profit3 : 1.04
+  sell_profit1 : 1.15
+  sell_profit2 : 1.1
+  sell_profit3 : 1.09
   sell_difference_rsi : 33
   sell_profit_1_rsi_level: 62
 

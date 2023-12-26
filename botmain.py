@@ -265,6 +265,9 @@ def buy_option_check(symbol):
     rsi = fetch_rsi(symbol=symbol,timeframe=timeframe)
     one_day_rsi_limit_buy = float(trade_parameters.get("one_day_rsi_limit_buy", 64.4))
     rsi_1_day = fetch_rsi(symbol=symbol,timeframe="1d")
+    logger.info(f"Checking buy criteria for {symbol}. RSI: {rsi}, RSI 1 day: {rsi_1_day}")
+    if rsi_1_day is None:
+        rsi_1_day = 55
     if rsi_1_day >= one_day_rsi_limit_buy:
         logger.info(f"RSI for {symbol} is {rsi_1_day} and it is higher than {one_day_rsi_limit_buy}.")
         return
@@ -278,12 +281,12 @@ def buy_option_check(symbol):
         else:
             amount_to_buy = account_balance
         # logger.info(f"Buying {amount_to_buy} {symbol} for {rsi} RSI. Account balance is {account_balance}")
-        rejected_list=["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"] 
+        # rejected_list=["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"] 
 
-        for i in rejected_list:
-            if i in symbol:
-                logger.info(f"{symbol} is in rejected list.")
-                return
+        # for i in rejected_list:
+        #     if i in symbol:
+        #         logger.info(f"{symbol} is in rejected list.")
+        #         return
 
         asked_price = exchange.fetch_ticker(symbol)['ask']
         amount_to_buy_for_order = amount_to_buy / asked_price
@@ -292,7 +295,7 @@ def buy_option_check(symbol):
 
 def sell_check_criteria(symbol,current_price, trade):
     total_duration_check= 5 * cycle_period() * 60
-    sell_profit1 = trade_parameters.get("sale_profit1", 1.07)
+    sell_profit1 = trade_parameters.get("sell_profit1", 1.07)
     sell_profit2 = trade_parameters.get("sell_profit2", 1.05)
     sell_profit3 = trade_parameters.get("sell_profit3", 1.04)
     sell_difference_rsi = trade_parameters.get("sell_difference_rsi", 32)
