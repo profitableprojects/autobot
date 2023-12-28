@@ -12,6 +12,7 @@ import os
 import logging
 import sys
 import traceback
+from logging.handlers import RotatingFileHandler
 
 log_directory = "/bot/logs"
 log_filename = "autobot.log"
@@ -28,7 +29,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Dosya Handler'ı oluştur
-file_handler = logging.FileHandler(log_file_path)
+file_handler = RotatingFileHandler(log_file_path, maxBytes=20*1024*1024, backupCount=10)
 file_handler.setLevel(logging.INFO)
 file_format = logging.Formatter('%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d - %(funcName)s()] - %(message)s')
 file_handler.setFormatter(file_format)
@@ -262,6 +263,11 @@ def get_trades_with_status_2(symbol):
     return list(trades)
 
 def buy_option_check(symbol):
+    rejected_list=trade_parameters["rejected_list"]
+    for i in rejected_list:
+        if i in symbol:
+            logger.info(f"{symbol} is in rejected list.")
+            return
     rsi = fetch_rsi(symbol=symbol,timeframe=timeframe)
     one_day_rsi_limit_buy = float(trade_parameters.get("one_day_rsi_limit_buy", 64.4))
     rsi_1_day = fetch_rsi(symbol=symbol,timeframe="1d")
@@ -283,10 +289,6 @@ def buy_option_check(symbol):
         # logger.info(f"Buying {amount_to_buy} {symbol} for {rsi} RSI. Account balance is {account_balance}")
         # rejected_list=["BNB", "BSW","ETH","USDC","BUSD","FDUSD","TUSD","USDP"] 
 
-        # for i in rejected_list:
-        #     if i in symbol:
-        #         logger.info(f"{symbol} is in rejected list.")
-        #         return
 
         asked_price = exchange.fetch_ticker(symbol)['ask']
         amount_to_buy_for_order = amount_to_buy / asked_price
@@ -322,7 +324,6 @@ def process_symbol(symbol_info):
         # buy_enabled: True
         if trade_parameters.get("buy_enabled", True):
             buy_option_check(symbol)
-
 
     open_trades = get_trades_with_status_2(symbol)
     # logger.info(f"Open trades for {symbol}: {len(open_trades)}")

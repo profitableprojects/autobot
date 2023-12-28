@@ -4,7 +4,7 @@ $version = Get-Content $versionFile
 $versionParts = $version.Split('.')
 $minorVersion = [int]$versionParts[2]
 $newMinorVersion = $minorVersion + 1
-$newVersion = "$($versionParts[0]).$($versionParts[1]).$newMinorVersion.2"
+$newVersion = "$($versionParts[0]).$($versionParts[1]).$newMinorVersion.4"
 
 # Yeni versiyon ile Docker imajlarını build et
 docker build -t nvrbox/autobot:$newVersion -t nvrbox/autobot:latest -f ./BotDockerfile . --no-cache
